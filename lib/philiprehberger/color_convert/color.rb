@@ -26,7 +26,7 @@ module Philiprehberger
       #
       # @return [String] hex color string (e.g., "#ff0000")
       def to_hex
-        format("#%<r>02x%<g>02x%<b>02x", r: @r, g: @g, b: @b)
+        format('#%<r>02x%<g>02x%<b>02x', r: @r, g: @g, b: @b)
       end
 
       # Convert to RGB hash.
@@ -179,9 +179,9 @@ module Philiprehberger
       # @param l [Numeric] lightness (0-100)
       # @return [Color]
       def self.from_hsl(h, s, l)
-        h = h / 360.0
-        s = s / 100.0
-        l = l / 100.0
+        h /= 360.0
+        s /= 100.0
+        l /= 100.0
 
         if s.zero?
           val = (l * 255).round

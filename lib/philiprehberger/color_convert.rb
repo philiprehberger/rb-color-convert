@@ -23,14 +23,10 @@ module Philiprehberger
       input = str.to_s.strip.downcase
 
       # Try named colors first
-      if NAMED_COLORS.key?(input)
-        return parse_hex(NAMED_COLORS[input])
-      end
+      return parse_hex(NAMED_COLORS[input]) if NAMED_COLORS.key?(input)
 
       # Hex format
-      if input.match?(/\A#?[0-9a-f]{3,8}\z/)
-        return parse_hex(input)
-      end
+      return parse_hex(input) if input.match?(/\A#?[0-9a-f]{3,8}\z/)
 
       # RGB format
       if (match = input.match(/\Argb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)\z/))
@@ -84,7 +80,7 @@ module Philiprehberger
 
     # @api private
     def self.parse_hex(str)
-      hex = str.delete("#")
+      hex = str.delete('#')
 
       case hex.length
       when 3
@@ -105,6 +101,6 @@ module Philiprehberger
   end
 end
 
-require_relative "color_convert/version"
-require_relative "color_convert/named_colors"
-require_relative "color_convert/color"
+require_relative 'color_convert/version'
+require_relative 'color_convert/named_colors'
+require_relative 'color_convert/color'
