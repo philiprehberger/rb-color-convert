@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-03-28
+
+### Added
+- CMYK color space support with `to_cmyk` and `Color.from_cmyk` conversion methods
+- CIELAB color space support with `to_lab` and `Color.from_lab` via XYZ (D65 illuminant)
+- XYZ color space support with `to_xyz` and `Color.from_xyz`
+- Color blending with `blend(other, weight: 0.5)` to mix two colors
+- Color harmony generation: `analogous`, `triadic`, `tetradic`, `split_complementary`
+- Color blindness simulation: `simulate_color_blindness(:protanopia | :deuteranopia | :tritanopia)`
+- Palette generation: `gradient(other, steps:)` and `monochromatic(steps:)`
+- CMYK string parsing support in `ColorConvert.parse`
+
 ## [0.1.3] - 2026-03-26
 
 ### Fixed

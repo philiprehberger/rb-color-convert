@@ -95,6 +95,62 @@ module Philiprehberger
         { h: (h * 360).round(1), s: (s * 100).round(1), v: (v * 100).round(1) }
       end
 
+      # Convert to CMYK hash.
+      #
+      # @return [Hash] with :c, :m, :y, :k keys (0-100)
+      def to_cmyk
+        rf = @r / 255.0
+        gf = @g / 255.0
+        bf = @b / 255.0
+
+        k = 1.0 - [rf, gf, bf].max
+
+        if k >= 1.0
+          return { c: 0.0, m: 0.0, y: 0.0, k: 100.0 }
+        end
+
+        c = (1.0 - rf - k) / (1.0 - k)
+        m = (1.0 - gf - k) / (1.0 - k)
+        y = (1.0 - bf - k) / (1.0 - k)
+
+        { c: (c * 100).round(1), m: (m * 100).round(1), y: (y * 100).round(1), k: (k * 100).round(1) }
+      end
+
+      # Convert to CIELAB hash via XYZ (D65 illuminant).
+      #
+      # @return [Hash] with :l (0-100), :a (approx -128 to 127), :b (approx -128 to 127) keys
+      def to_lab
+        xyz = to_xyz
+        x = xyz[:x] / 95.047
+        y = xyz[:y] / 100.0
+        z = xyz[:z] / 108.883
+
+        x = lab_f(x)
+        y = lab_f(y)
+        z = lab_f(z)
+
+        l = (116.0 * y) - 16.0
+        a = 500.0 * (x - y)
+        b = 200.0 * (y - z)
+
+        { l: l.round(2), a: a.round(2), b: b.round(2) }
+      end
+
+      # Convert to CIE XYZ color space (D65 illuminant).
+      #
+      # @return [Hash] with :x, :y, :z keys
+      def to_xyz
+        rf = linearize_srgb(@r / 255.0) * 100.0
+        gf = linearize_srgb(@g / 255.0) * 100.0
+        bf = linearize_srgb(@b / 255.0) * 100.0
+
+        x = (rf * 0.4124564) + (gf * 0.3575761) + (bf * 0.1804375)
+        y = (rf * 0.2126729) + (gf * 0.7151522) + (bf * 0.0721750)
+        z = (rf * 0.0193339) + (gf * 0.1191920) + (bf * 0.9503041)
+
+        { x: x.round(4), y: y.round(4), z: z.round(4) }
+      end
+
       # Lighten the color by a percentage.
       #
       # @param amount [Numeric] percentage to lighten (0-100)
@@ -138,6 +194,126 @@ module Philiprehberger
         hsl = to_hsl
         new_h = (hsl[:h] + 180) % 360
         self.class.from_hsl(new_h, hsl[:s], hsl[:l])
+      end
+
+      # Blend this color with another color.
+      #
+      # @param other [Color] the other color to blend with
+      # @param weight [Float] blend weight (0.0 = all self, 1.0 = all other, 0.5 = equal mix)
+      # @return [Color] the blended color
+      def blend(other, weight: 0.5)
+        w = clamp(weight.to_f, 0.0, 1.0)
+        new_r = (@r * (1.0 - w)) + (other.r * w)
+        new_g = (@g * (1.0 - w)) + (other.g * w)
+        new_b = (@b * (1.0 - w)) + (other.b * w)
+        self.class.new(new_r.round, new_g.round, new_b.round)
+      end
+
+      # Generate analogous colors (30 degrees apart on the color wheel).
+      #
+      # @return [Array<Color>] array of 3 colors: -30deg, self, +30deg
+      def analogous
+        hsl = to_hsl
+        [
+          self.class.from_hsl((hsl[:h] - 30) % 360, hsl[:s], hsl[:l]),
+          self.class.new(@r, @g, @b),
+          self.class.from_hsl((hsl[:h] + 30) % 360, hsl[:s], hsl[:l])
+        ]
+      end
+
+      # Generate triadic colors (120 degrees apart on the color wheel).
+      #
+      # @return [Array<Color>] array of 3 colors
+      def triadic
+        hsl = to_hsl
+        [
+          self.class.new(@r, @g, @b),
+          self.class.from_hsl((hsl[:h] + 120) % 360, hsl[:s], hsl[:l]),
+          self.class.from_hsl((hsl[:h] + 240) % 360, hsl[:s], hsl[:l])
+        ]
+      end
+
+      # Generate tetradic (rectangular) colors (90 degrees apart).
+      #
+      # @return [Array<Color>] array of 4 colors
+      def tetradic
+        hsl = to_hsl
+        [
+          self.class.new(@r, @g, @b),
+          self.class.from_hsl((hsl[:h] + 90) % 360, hsl[:s], hsl[:l]),
+          self.class.from_hsl((hsl[:h] + 180) % 360, hsl[:s], hsl[:l]),
+          self.class.from_hsl((hsl[:h] + 270) % 360, hsl[:s], hsl[:l])
+        ]
+      end
+
+      # Generate split-complementary colors (150 and 210 degrees from base).
+      #
+      # @return [Array<Color>] array of 3 colors
+      def split_complementary
+        hsl = to_hsl
+        [
+          self.class.new(@r, @g, @b),
+          self.class.from_hsl((hsl[:h] + 150) % 360, hsl[:s], hsl[:l]),
+          self.class.from_hsl((hsl[:h] + 210) % 360, hsl[:s], hsl[:l])
+        ]
+      end
+
+      # Simulate color blindness.
+      #
+      # @param type [Symbol] one of :protanopia, :deuteranopia, :tritanopia
+      # @return [Color] the simulated color
+      # @raise [ArgumentError] if type is not recognized
+      def simulate_color_blindness(type)
+        matrix = COLOR_BLINDNESS_MATRICES[type]
+        raise ArgumentError, "Unknown color blindness type: #{type}" unless matrix
+
+        rf = @r / 255.0
+        gf = @g / 255.0
+        bf = @b / 255.0
+
+        # Convert to linear RGB
+        rl = linearize_srgb(rf)
+        gl = linearize_srgb(gf)
+        bl = linearize_srgb(bf)
+
+        # Apply simulation matrix
+        new_r = (matrix[0][0] * rl) + (matrix[0][1] * gl) + (matrix[0][2] * bl)
+        new_g = (matrix[1][0] * rl) + (matrix[1][1] * gl) + (matrix[1][2] * bl)
+        new_b = (matrix[2][0] * rl) + (matrix[2][1] * gl) + (matrix[2][2] * bl)
+
+        # Convert back to sRGB
+        new_r = delinearize_srgb(clamp(new_r, 0.0, 1.0))
+        new_g = delinearize_srgb(clamp(new_g, 0.0, 1.0))
+        new_b = delinearize_srgb(clamp(new_b, 0.0, 1.0))
+
+        self.class.new((new_r * 255).round, (new_g * 255).round, (new_b * 255).round)
+      end
+
+      # Generate a gradient palette between this color and another.
+      #
+      # @param other [Color] the target color
+      # @param steps [Integer] number of colors in the gradient (minimum 2)
+      # @return [Array<Color>] array of colors forming a gradient
+      def gradient(other, steps: 5)
+        steps = [steps, 2].max
+        (0...steps).map do |i|
+          weight = i / (steps - 1).to_f
+          blend(other, weight: weight)
+        end
+      end
+
+      # Generate a monochromatic palette by varying lightness.
+      #
+      # @param steps [Integer] number of shades to generate (minimum 2)
+      # @return [Array<Color>] array of colors from dark to light
+      def monochromatic(steps: 5)
+        steps = [steps, 2].max
+        hsl = to_hsl
+        step_size = 100.0 / (steps + 1)
+
+        (1..steps).map do |i|
+          self.class.from_hsl(hsl[:h], hsl[:s], step_size * i)
+        end
       end
 
       # Calculate the WCAG contrast ratio between this color and another.
@@ -198,6 +374,71 @@ module Philiprehberger
         new((r * 255).round, (g * 255).round, (b * 255).round)
       end
 
+      # Create a Color from CMYK values.
+      #
+      # @param c [Numeric] cyan (0-100)
+      # @param m [Numeric] magenta (0-100)
+      # @param y [Numeric] yellow (0-100)
+      # @param k [Numeric] key/black (0-100)
+      # @return [Color]
+      def self.from_cmyk(c, m, y, k)
+        c /= 100.0
+        m /= 100.0
+        y /= 100.0
+        k /= 100.0
+
+        r = 255 * (1 - c) * (1 - k)
+        g = 255 * (1 - m) * (1 - k)
+        b = 255 * (1 - y) * (1 - k)
+
+        new(r.round, g.round, b.round)
+      end
+
+      # Create a Color from CIELAB values (D65 illuminant).
+      #
+      # @param l [Numeric] lightness (0-100)
+      # @param a [Numeric] green-red component (approx -128 to 127)
+      # @param b [Numeric] blue-yellow component (approx -128 to 127)
+      # @return [Color]
+      def self.from_lab(l, a, b)
+        # LAB to XYZ
+        fy = (l + 16.0) / 116.0
+        fx = (a / 500.0) + fy
+        fz = fy - (b / 200.0)
+
+        x = lab_f_inv(fx) * 95.047
+        y = lab_f_inv(fy) * 100.0
+        z = lab_f_inv(fz) * 108.883
+
+        from_xyz(x, y, z)
+      end
+
+      # Create a Color from CIE XYZ values.
+      #
+      # @param x [Numeric] X component
+      # @param y [Numeric] Y component
+      # @param z [Numeric] Z component
+      # @return [Color]
+      def self.from_xyz(x, y, z)
+        x /= 100.0
+        y /= 100.0
+        z /= 100.0
+
+        r = (x * 3.2404542) + (y * -1.5371385) + (z * -0.4985314)
+        g = (x * -0.9692660) + (y * 1.8760108) + (z * 0.0415560)
+        b = (x * 0.0556434) + (y * -0.2040259) + (z * 1.0572252)
+
+        r = delinearize_srgb_class(r)
+        g = delinearize_srgb_class(g)
+        b = delinearize_srgb_class(b)
+
+        new(
+          [[r * 255, 0].max, 255].min.round,
+          [[g * 255, 0].max, 255].min.round,
+          [[b * 255, 0].max, 255].min.round
+        )
+      end
+
       # @api private
       def self.hue_to_rgb(p, q, t)
         t += 1 if t.negative?
@@ -208,6 +449,43 @@ module Philiprehberger
 
         p
       end
+
+      # @api private
+      def self.lab_f_inv(t)
+        if t > 6.0 / 29
+          t**3
+        else
+          3.0 * ((6.0 / 29)**2) * (t - (4.0 / 29))
+        end
+      end
+
+      # @api private
+      def self.delinearize_srgb_class(c)
+        if c <= 0.0031308
+          12.92 * c
+        else
+          (1.055 * (c**(1.0 / 2.4))) - 0.055
+        end
+      end
+
+      # Color blindness simulation matrices (Brettel/Vienot method).
+      COLOR_BLINDNESS_MATRICES = {
+        protanopia: [
+          [0.152286, 1.052583, -0.204868],
+          [0.114503, 0.786281, 0.099216],
+          [-0.003882, -0.048116, 1.051998]
+        ],
+        deuteranopia: [
+          [0.367322, 0.860646, -0.227968],
+          [0.280085, 0.672501, 0.047413],
+          [-0.011820, 0.042940, 0.968881]
+        ],
+        tritanopia: [
+          [1.255528, -0.076749, -0.178779],
+          [-0.078411, 0.930809, 0.147602],
+          [0.004733, 0.691367, 0.303900]
+        ]
+      }.freeze
 
       private
 
@@ -220,6 +498,30 @@ module Philiprehberger
           channel / 12.92
         else
           ((channel + 0.055) / 1.055)**2.4
+        end
+      end
+
+      def linearize_srgb(channel)
+        if channel <= 0.04045
+          channel / 12.92
+        else
+          ((channel + 0.055) / 1.055)**2.4
+        end
+      end
+
+      def delinearize_srgb(channel)
+        if channel <= 0.0031308
+          12.92 * channel
+        else
+          (1.055 * (channel**(1.0 / 2.4))) - 0.055
+        end
+      end
+
+      def lab_f(t)
+        if t > (6.0 / 29)**3
+          t**(1.0 / 3)
+        else
+          (t / (3.0 * ((6.0 / 29)**2))) + (4.0 / 29)
         end
       end
     end
