@@ -1,6 +1,8 @@
 # philiprehberger-color_convert
 
-[![Tests](https://github.com/philiprehberger/rb-color-convert/actions/workflows/ci.yml/badge.svg)](https://github.com/philiprehberger/rb-color-convert/actions/workflows/ci.yml) [![Gem Version](https://img.shields.io/gem/v/philiprehberger-color_convert)](https://rubygems.org/gems/philiprehberger-color_convert) [![GitHub release](https://img.shields.io/github/v/release/philiprehberger/rb-color-convert)](https://github.com/philiprehberger/rb-color-convert/releases) [![GitHub last commit](https://img.shields.io/github/last-commit/philiprehberger/rb-color-convert)](https://github.com/philiprehberger/rb-color-convert/commits/main) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Bug Reports](https://img.shields.io/badge/bug-reports-red.svg)](https://github.com/philiprehberger/rb-color-convert/issues) [![Feature Requests](https://img.shields.io/badge/feature-requests-blue.svg)](https://github.com/philiprehberger/rb-color-convert/issues) [![GitHub Sponsors](https://img.shields.io/badge/sponsor-philiprehberger-ea4aaa.svg?logo=github)](https://github.com/sponsors/philiprehberger)
+[![Tests](https://github.com/philiprehberger/rb-color-convert/actions/workflows/ci.yml/badge.svg)](https://github.com/philiprehberger/rb-color-convert/actions/workflows/ci.yml)
+[![Gem Version](https://badge.fury.io/rb/philiprehberger-color_convert.svg)](https://rubygems.org/gems/philiprehberger-color_convert)
+[![Last updated](https://img.shields.io/github/last-commit/philiprehberger/rb-color-convert)](https://github.com/philiprehberger/rb-color-convert/commits/main)
 
 Color format conversion with parsing, manipulation, harmony generation, color blindness simulation, and CSS named colors.
 
@@ -167,7 +169,21 @@ bundle exec rubocop
 
 ## Support
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Philip%20Rehberger-blue?logo=linkedin)](https://linkedin.com/in/philiprehberger) [![More Packages](https://img.shields.io/badge/more-packages-blue.svg)](https://github.com/philiprehberger?tab=repositories)
+If you find this project useful:
+
+⭐ [Star the repo](https://github.com/philiprehberger/rb-color-convert)
+
+🐛 [Report issues](https://github.com/philiprehberger/rb-color-convert/issues?q=is%3Aissue+is%3Aopen+label%3Abug)
+
+💡 [Suggest features](https://github.com/philiprehberger/rb-color-convert/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement)
+
+❤️ [Sponsor development](https://github.com/sponsors/philiprehberger)
+
+🌐 [All Open Source Projects](https://philiprehberger.com/open-source-packages)
+
+💻 [GitHub Profile](https://github.com/philiprehberger)
+
+🔗 [LinkedIn Profile](https://www.linkedin.com/in/philiprehberger)
 
 ## License
 
