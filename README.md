@@ -4,7 +4,7 @@
 [![Gem Version](https://badge.fury.io/rb/philiprehberger-color_convert.svg)](https://rubygems.org/gems/philiprehberger-color_convert)
 [![Last updated](https://img.shields.io/github/last-commit/philiprehberger/rb-color-convert)](https://github.com/philiprehberger/rb-color-convert/commits/main)
 
-Color format conversion with parsing, manipulation, harmony generation, color blindness simulation, and CSS named colors.
+Color format conversion with parsing, manipulation, harmony generation, color blindness simulation, and CSS named colors
 
 ## Requirements
 

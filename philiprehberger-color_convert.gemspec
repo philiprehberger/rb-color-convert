@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.authors = ['Philip Rehberger']
   spec.email = ['me@philiprehberger.com']
 
-  spec.summary = 'Color format conversion with parsing, manipulation, and CSS named colors'
+  spec.summary = 'Color format conversion with parsing, manipulation, harmony generation, color blindness simulation, and CSS named colors'
   spec.description = 'A color conversion library supporting hex, RGB, HSL, and HSV formats with ' \
                      'parsing, manipulation (lighten, darken, saturate, desaturate), contrast ratio ' \
                      'calculation, and all 148 CSS named colors.'
