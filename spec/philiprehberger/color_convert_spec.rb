@@ -557,6 +557,94 @@ RSpec.describe Philiprehberger::ColorConvert::Color do
     end
   end
 
+  describe '#temperature' do
+    it 'returns :warm for red (hue 0)' do
+      expect(red.temperature).to eq(:warm)
+    end
+
+    it 'returns :warm for orange (hue ~30)' do
+      color = described_class.from_hsl(30, 100, 50)
+      expect(color.temperature).to eq(:warm)
+    end
+
+    it 'returns :warm for yellow (hue 60)' do
+      color = described_class.from_hsl(60, 100, 50)
+      expect(color.temperature).to eq(:warm)
+    end
+
+    it 'returns :warm for magenta (hue 300)' do
+      color = described_class.from_hsl(300, 100, 50)
+      expect(color.temperature).to eq(:warm)
+    end
+
+    it 'returns :warm for pink (hue 330)' do
+      color = described_class.from_hsl(330, 100, 50)
+      expect(color.temperature).to eq(:warm)
+    end
+
+    it 'returns :cool for cyan (hue 180)' do
+      color = described_class.from_hsl(180, 100, 50)
+      expect(color.temperature).to eq(:cool)
+    end
+
+    it 'returns :cool for blue (hue 240)' do
+      color = described_class.new(0, 0, 255)
+      expect(color.temperature).to eq(:cool)
+    end
+
+    it 'returns :cool for green (hue 120)' do
+      color = described_class.from_hsl(120, 100, 50)
+      expect(color.temperature).to eq(:cool)
+    end
+
+    it 'returns :neutral for chartreuse (hue ~90)' do
+      color = described_class.from_hsl(90, 100, 50)
+      expect(color.temperature).to eq(:neutral)
+    end
+
+    it 'returns :neutral for purple (hue ~270)' do
+      color = described_class.from_hsl(270, 100, 50)
+      expect(color.temperature).to eq(:neutral)
+    end
+
+    it 'returns :warm for achromatic colors (hue 0)' do
+      gray = described_class.new(128, 128, 128)
+      expect(gray.temperature).to eq(:warm)
+    end
+  end
+
+  describe '#warm?' do
+    it 'returns true for warm colors' do
+      expect(red.warm?).to be true
+    end
+
+    it 'returns false for cool colors' do
+      blue = described_class.new(0, 0, 255)
+      expect(blue.warm?).to be false
+    end
+
+    it 'returns false for neutral colors' do
+      color = described_class.from_hsl(90, 100, 50)
+      expect(color.warm?).to be false
+    end
+  end
+
+  describe '#cool?' do
+    it 'returns true for cool colors' do
+      blue = described_class.new(0, 0, 255)
+      expect(blue.cool?).to be true
+    end
+
+    it 'returns false for warm colors' do
+      expect(red.cool?).to be false
+    end
+
+    it 'returns false for neutral colors' do
+      color = described_class.from_hsl(90, 100, 50)
+      expect(color.cool?).to be false
+    end
+  end
+
   describe '#==' do
     it 'returns true for equal colors' do
       expect(described_class.new(255, 0, 0)).to eq(described_class.new(255, 0, 0))

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-04-15
+
+### Added
+- Color temperature classification with `#temperature` returning `:warm`, `:cool`, or `:neutral` based on HSL hue
+- Convenience predicates `#warm?` and `#cool?` for quick temperature checks
+
 ## [0.2.3] - 2026-04-08
 
 ### Changed

@@ -338,6 +338,31 @@ module Philiprehberger
         (0.2126 * rs) + (0.7152 * gs) + (0.0722 * bs)
       end
 
+      # Classify the color temperature based on HSL hue.
+      #
+      # @return [Symbol] :warm, :cool, or :neutral
+      def temperature
+        hue = to_hsl[:h]
+
+        if hue <= 60 || hue >= 300
+          :warm
+        elsif hue >= 120 && hue <= 240
+          :cool
+        else
+          :neutral
+        end
+      end
+
+      # @return [Boolean] true if the color temperature is warm
+      def warm?
+        temperature == :warm
+      end
+
+      # @return [Boolean] true if the color temperature is cool
+      def cool?
+        temperature == :cool
+      end
+
       # @return [String]
       def to_s
         to_hex
