@@ -346,7 +346,7 @@ module Philiprehberger
 
         if hue <= 60 || hue >= 300
           :warm
-        elsif hue >= 120 && hue <= 240
+        elsif hue.between?(120, 240)
           :cool
         else
           :neutral
