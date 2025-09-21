@@ -61,6 +61,30 @@ RSpec.describe Philiprehberger::ColorConvert do
     it 'raises ParseError for invalid input' do
       expect { described_class.parse('not-a-color') }.to raise_error(Philiprehberger::ColorConvert::ParseError)
     end
+
+    it 'parses RGBA format' do
+      color = described_class.parse('rgba(255, 0, 0, 0.5)')
+      expect(color.to_rgb).to eq({ r: 255, g: 0, b: 0 })
+      expect(color.alpha).to eq(0.5)
+    end
+
+    it 'parses HSLA format' do
+      color = described_class.parse('hsla(0, 100%, 50%, 0.8)')
+      expect(color.to_hex).to eq('#ff0000')
+      expect(color.alpha).to eq(0.8)
+    end
+
+    it 'parses 8-digit hex with alpha' do
+      color = described_class.parse('#ff0000ff')
+      expect(color.to_hex).to eq('#ff0000')
+      expect(color.alpha).to eq(1.0)
+    end
+
+    it 'parses 8-digit hex with partial alpha' do
+      color = described_class.parse('#ff000080')
+      expect(color.r).to eq(255)
+      expect(color.alpha).to be_within(0.01).of(0.502)
+    end
   end
 
   describe '.named_colors' do
@@ -683,6 +707,112 @@ RSpec.describe Philiprehberger::ColorConvert::Color do
     it 'clamps values below 0' do
       color = described_class.new(-10, 0, 0)
       expect(color.r).to eq(0)
+    end
+  end
+
+  describe 'alpha channel' do
+    it 'defaults alpha to 1.0' do
+      expect(red.alpha).to eq(1.0)
+    end
+
+    it 'accepts alpha keyword argument' do
+      color = described_class.new(255, 0, 0, alpha: 0.5)
+      expect(color.alpha).to eq(0.5)
+    end
+
+    it 'clamps alpha above 1.0' do
+      color = described_class.new(255, 0, 0, alpha: 1.5)
+      expect(color.alpha).to eq(1.0)
+    end
+
+    it 'clamps alpha below 0.0' do
+      color = described_class.new(255, 0, 0, alpha: -0.1)
+      expect(color.alpha).to eq(0.0)
+    end
+
+    describe '#to_rgba' do
+      it 'returns RGBA hash with default alpha' do
+        expect(red.to_rgba).to eq({ r: 255, g: 0, b: 0, a: 1.0 })
+      end
+
+      it 'returns RGBA hash with custom alpha' do
+        color = described_class.new(255, 0, 0, alpha: 0.5)
+        expect(color.to_rgba).to eq({ r: 255, g: 0, b: 0, a: 0.5 })
+      end
+    end
+
+    describe '#opacity' do
+      it 'returns the alpha value' do
+        color = described_class.new(255, 0, 0, alpha: 0.75)
+        expect(color.opacity).to eq(0.75)
+      end
+    end
+
+    describe '#with_opacity' do
+      it 'returns a new Color with updated alpha' do
+        semi = red.with_opacity(0.3)
+        expect(semi.alpha).to eq(0.3)
+        expect(semi.r).to eq(255)
+        expect(semi.g).to eq(0)
+        expect(semi.b).to eq(0)
+      end
+
+      it 'does not mutate the original' do
+        red.with_opacity(0.3)
+        expect(red.alpha).to eq(1.0)
+      end
+    end
+
+    describe '#opaque?' do
+      it 'returns true when alpha is 1.0' do
+        expect(red.opaque?).to be true
+      end
+
+      it 'returns false when alpha is less than 1.0' do
+        color = described_class.new(255, 0, 0, alpha: 0.5)
+        expect(color.opaque?).to be false
+      end
+    end
+
+    describe '#transparent?' do
+      it 'returns false when alpha is 1.0' do
+        expect(red.transparent?).to be false
+      end
+
+      it 'returns true when alpha is less than 1.0' do
+        color = described_class.new(255, 0, 0, alpha: 0.5)
+        expect(color.transparent?).to be true
+      end
+
+      it 'returns true when alpha is 0.0' do
+        color = described_class.new(255, 0, 0, alpha: 0.0)
+        expect(color.transparent?).to be true
+      end
+    end
+
+    describe '#to_s with alpha' do
+      it 'returns hex string when fully opaque' do
+        expect(red.to_s).to eq('#ff0000')
+      end
+
+      it 'returns rgba string when alpha is not 1.0' do
+        color = described_class.new(255, 0, 0, alpha: 0.5)
+        expect(color.to_s).to eq('rgba(255, 0, 0, 0.5)')
+      end
+    end
+
+    describe '#== with alpha' do
+      it 'returns false for same RGB but different alpha' do
+        a = described_class.new(255, 0, 0, alpha: 1.0)
+        b = described_class.new(255, 0, 0, alpha: 0.5)
+        expect(a).not_to eq(b)
+      end
+
+      it 'returns true for same RGB and same alpha' do
+        a = described_class.new(255, 0, 0, alpha: 0.5)
+        b = described_class.new(255, 0, 0, alpha: 0.5)
+        expect(a).to eq(b)
+      end
     end
   end
 end
