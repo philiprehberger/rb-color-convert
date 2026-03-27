@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "philiprehberger/color_convert"
+require 'philiprehberger/color_convert'
 
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|
