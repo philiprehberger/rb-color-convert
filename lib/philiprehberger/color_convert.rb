@@ -14,6 +14,7 @@ module Philiprehberger
     # - RGB: "rgb(255, 0, 0)"
     # - HSL: "hsl(0, 100%, 50%)"
     # - HSV: "hsv(0, 100%, 100%)"
+    # - CMYK: "cmyk(0, 100%, 100%, 0)"
     # - CSS named colors: "red", "blue", "cornflowerblue"
     #
     # @param str [String] the color string to parse
@@ -41,6 +42,11 @@ module Philiprehberger
       # HSV format
       if (match = input.match(/\Ahsv\(\s*([\d.]+)\s*,\s*([\d.]+)%?\s*,\s*([\d.]+)%?\s*\)\z/))
         return from_hsv(match[1].to_f, match[2].to_f, match[3].to_f)
+      end
+
+      # CMYK format
+      if (match = input.match(/\Acmyk\(\s*([\d.]+)%?\s*,\s*([\d.]+)%?\s*,\s*([\d.]+)%?\s*,\s*([\d.]+)%?\s*\)\z/))
+        return Color.from_cmyk(match[1].to_f, match[2].to_f, match[3].to_f, match[4].to_f)
       end
 
       raise ParseError, "Cannot parse color: #{str}"

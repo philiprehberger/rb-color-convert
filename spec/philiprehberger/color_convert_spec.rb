@@ -38,6 +38,16 @@ RSpec.describe Philiprehberger::ColorConvert do
       expect(color.to_hex).to eq('#ff0000')
     end
 
+    it 'parses CMYK format' do
+      color = described_class.parse('cmyk(0, 100, 100, 0)')
+      expect(color.to_hex).to eq('#ff0000')
+    end
+
+    it 'parses CMYK format with percent signs' do
+      color = described_class.parse('cmyk(0%, 100%, 100%, 0%)')
+      expect(color.to_hex).to eq('#ff0000')
+    end
+
     it 'parses CSS named colors' do
       color = described_class.parse('red')
       expect(color.to_hex).to eq('#ff0000')
@@ -119,6 +129,145 @@ RSpec.describe Philiprehberger::ColorConvert::Color do
     end
   end
 
+  describe '#to_cmyk' do
+    it 'converts red to CMYK' do
+      cmyk = red.to_cmyk
+      expect(cmyk[:c]).to eq(0.0)
+      expect(cmyk[:m]).to eq(100.0)
+      expect(cmyk[:y]).to eq(100.0)
+      expect(cmyk[:k]).to eq(0.0)
+    end
+
+    it 'converts white to CMYK' do
+      cmyk = described_class.new(255, 255, 255).to_cmyk
+      expect(cmyk[:c]).to eq(0.0)
+      expect(cmyk[:m]).to eq(0.0)
+      expect(cmyk[:y]).to eq(0.0)
+      expect(cmyk[:k]).to eq(0.0)
+    end
+
+    it 'converts black to CMYK' do
+      cmyk = described_class.new(0, 0, 0).to_cmyk
+      expect(cmyk[:c]).to eq(0.0)
+      expect(cmyk[:m]).to eq(0.0)
+      expect(cmyk[:y]).to eq(0.0)
+      expect(cmyk[:k]).to eq(100.0)
+    end
+
+    it 'converts a mid-range color to CMYK' do
+      # Teal: rgb(0, 128, 128)
+      cmyk = described_class.new(0, 128, 128).to_cmyk
+      expect(cmyk[:c]).to eq(100.0)
+      expect(cmyk[:m]).to eq(0.0)
+      expect(cmyk[:y]).to eq(0.0)
+      expect(cmyk[:k]).to be_within(0.5).of(49.8)
+    end
+  end
+
+  describe '#to_lab' do
+    it 'converts white to LAB' do
+      lab = described_class.new(255, 255, 255).to_lab
+      expect(lab[:l]).to eq(100.0)
+      expect(lab[:a]).to be_within(0.1).of(0.0)
+      expect(lab[:b]).to be_within(0.1).of(0.0)
+    end
+
+    it 'converts black to LAB' do
+      lab = described_class.new(0, 0, 0).to_lab
+      expect(lab[:l]).to eq(0.0)
+      expect(lab[:a]).to eq(0.0)
+      expect(lab[:b]).to eq(0.0)
+    end
+
+    it 'converts red to LAB with expected ranges' do
+      lab = red.to_lab
+      expect(lab[:l]).to be_within(1.0).of(53.23)
+      expect(lab[:a]).to be_within(1.0).of(80.11)
+      expect(lab[:b]).to be_within(1.0).of(67.22)
+    end
+
+    it 'converts blue to LAB with expected ranges' do
+      lab = described_class.new(0, 0, 255).to_lab
+      expect(lab[:l]).to be_within(1.0).of(32.30)
+      expect(lab[:a]).to be_within(1.5).of(79.20)
+      expect(lab[:b]).to be_within(1.5).of(-107.86)
+    end
+  end
+
+  describe '#to_xyz' do
+    it 'converts white to D65 reference' do
+      xyz = described_class.new(255, 255, 255).to_xyz
+      expect(xyz[:x]).to be_within(0.5).of(95.047)
+      expect(xyz[:y]).to be_within(0.5).of(100.0)
+      expect(xyz[:z]).to be_within(0.5).of(108.883)
+    end
+
+    it 'converts black to zero' do
+      xyz = described_class.new(0, 0, 0).to_xyz
+      expect(xyz[:x]).to eq(0.0)
+      expect(xyz[:y]).to eq(0.0)
+      expect(xyz[:z]).to eq(0.0)
+    end
+  end
+
+  describe '.from_cmyk' do
+    it 'converts CMYK to Color' do
+      color = described_class.from_cmyk(0, 100, 100, 0)
+      expect(color.to_hex).to eq('#ff0000')
+    end
+
+    it 'converts full black CMYK' do
+      color = described_class.from_cmyk(0, 0, 0, 100)
+      expect(color.to_hex).to eq('#000000')
+    end
+
+    it 'converts zero CMYK to white' do
+      color = described_class.from_cmyk(0, 0, 0, 0)
+      expect(color.to_hex).to eq('#ffffff')
+    end
+
+    it 'round-trips through CMYK' do
+      original = described_class.new(64, 128, 192)
+      cmyk = original.to_cmyk
+      restored = described_class.from_cmyk(cmyk[:c], cmyk[:m], cmyk[:y], cmyk[:k])
+      expect(restored.r).to be_within(1).of(original.r)
+      expect(restored.g).to be_within(1).of(original.g)
+      expect(restored.b).to be_within(1).of(original.b)
+    end
+  end
+
+  describe '.from_lab' do
+    it 'converts LAB to Color for white' do
+      color = described_class.from_lab(100, 0, 0)
+      expect(color.r).to be_within(1).of(255)
+      expect(color.g).to be_within(1).of(255)
+      expect(color.b).to be_within(1).of(255)
+    end
+
+    it 'converts LAB to Color for black' do
+      color = described_class.from_lab(0, 0, 0)
+      expect(color.to_hex).to eq('#000000')
+    end
+
+    it 'round-trips through LAB' do
+      original = described_class.new(128, 64, 192)
+      lab = original.to_lab
+      restored = described_class.from_lab(lab[:l], lab[:a], lab[:b])
+      expect(restored.r).to be_within(2).of(original.r)
+      expect(restored.g).to be_within(2).of(original.g)
+      expect(restored.b).to be_within(2).of(original.b)
+    end
+  end
+
+  describe '.from_xyz' do
+    it 'converts D65 white reference back to white' do
+      color = described_class.from_xyz(95.047, 100.0, 108.883)
+      expect(color.r).to be_within(1).of(255)
+      expect(color.g).to be_within(1).of(255)
+      expect(color.b).to be_within(1).of(255)
+    end
+  end
+
   describe '#lighten' do
     it 'returns a lighter color' do
       lighter = red.lighten(20)
@@ -163,6 +312,231 @@ RSpec.describe Philiprehberger::ColorConvert::Color do
       complement = red.complement
       hsl = complement.to_hsl
       expect(hsl[:h]).to eq(180.0)
+    end
+  end
+
+  describe '#blend' do
+    it 'returns equal mix at default weight' do
+      blue = described_class.new(0, 0, 255)
+      blended = red.blend(blue)
+      expect(blended.r).to eq(128)
+      expect(blended.g).to eq(0)
+      expect(blended.b).to eq(128)
+    end
+
+    it 'returns self at weight 0' do
+      blue = described_class.new(0, 0, 255)
+      blended = red.blend(blue, weight: 0.0)
+      expect(blended).to eq(red)
+    end
+
+    it 'returns other at weight 1' do
+      blue = described_class.new(0, 0, 255)
+      blended = red.blend(blue, weight: 1.0)
+      expect(blended).to eq(blue)
+    end
+
+    it 'supports custom weight' do
+      white = described_class.new(255, 255, 255)
+      black = described_class.new(0, 0, 0)
+      blended = black.blend(white, weight: 0.25)
+      expect(blended.r).to eq(64)
+      expect(blended.g).to eq(64)
+      expect(blended.b).to eq(64)
+    end
+
+    it 'clamps weight to valid range' do
+      blue = described_class.new(0, 0, 255)
+      blended = red.blend(blue, weight: 2.0)
+      expect(blended).to eq(blue)
+    end
+  end
+
+  describe '#analogous' do
+    it 'returns an array of 3 colors' do
+      colors = red.analogous
+      expect(colors.size).to eq(3)
+      expect(colors).to all(be_a(described_class))
+    end
+
+    it 'includes colors at -30 and +30 degrees' do
+      colors = red.analogous
+      expect(colors[0].to_hsl[:h]).to be_within(1).of(330.0)
+      expect(colors[2].to_hsl[:h]).to be_within(1).of(30.0)
+    end
+
+    it 'preserves saturation and lightness' do
+      colors = red.analogous
+      hsl = red.to_hsl
+      colors.each do |c|
+        expect(c.to_hsl[:s]).to be_within(1).of(hsl[:s])
+        expect(c.to_hsl[:l]).to be_within(1).of(hsl[:l])
+      end
+    end
+  end
+
+  describe '#triadic' do
+    it 'returns an array of 3 colors' do
+      colors = red.triadic
+      expect(colors.size).to eq(3)
+    end
+
+    it 'includes colors at 120 and 240 degrees' do
+      colors = red.triadic
+      expect(colors[0]).to eq(red)
+      expect(colors[1].to_hsl[:h]).to be_within(1).of(120.0)
+      expect(colors[2].to_hsl[:h]).to be_within(1).of(240.0)
+    end
+  end
+
+  describe '#tetradic' do
+    it 'returns an array of 4 colors' do
+      colors = red.tetradic
+      expect(colors.size).to eq(4)
+    end
+
+    it 'includes colors at 90 degree intervals' do
+      colors = red.tetradic
+      expect(colors[0]).to eq(red)
+      expect(colors[1].to_hsl[:h]).to be_within(1).of(90.0)
+      expect(colors[2].to_hsl[:h]).to be_within(1).of(180.0)
+      expect(colors[3].to_hsl[:h]).to be_within(1).of(270.0)
+    end
+  end
+
+  describe '#split_complementary' do
+    it 'returns an array of 3 colors' do
+      colors = red.split_complementary
+      expect(colors.size).to eq(3)
+    end
+
+    it 'includes colors at 150 and 210 degrees' do
+      colors = red.split_complementary
+      expect(colors[0]).to eq(red)
+      expect(colors[1].to_hsl[:h]).to be_within(1).of(150.0)
+      expect(colors[2].to_hsl[:h]).to be_within(1).of(210.0)
+    end
+  end
+
+  describe '#simulate_color_blindness' do
+    it 'simulates protanopia' do
+      result = red.simulate_color_blindness(:protanopia)
+      expect(result).to be_a(described_class)
+      # Red should appear much less red in protanopia
+      expect(result.r).to be < red.r
+    end
+
+    it 'simulates deuteranopia' do
+      result = red.simulate_color_blindness(:deuteranopia)
+      expect(result).to be_a(described_class)
+      expect(result.r).to be < red.r
+    end
+
+    it 'simulates tritanopia' do
+      result = red.simulate_color_blindness(:tritanopia)
+      expect(result).to be_a(described_class)
+      expect(result).to be_a(described_class)
+    end
+
+    it 'raises for unknown type' do
+      expect { red.simulate_color_blindness(:unknown) }.to raise_error(ArgumentError)
+    end
+
+    it 'preserves gray colors' do
+      gray = described_class.new(128, 128, 128)
+      %i[protanopia deuteranopia tritanopia].each do |type|
+        result = gray.simulate_color_blindness(type)
+        expect(result.r).to be_within(5).of(128)
+        expect(result.g).to be_within(5).of(128)
+        expect(result.b).to be_within(5).of(128)
+      end
+    end
+
+    it 'preserves white' do
+      white = described_class.new(255, 255, 255)
+      %i[protanopia deuteranopia tritanopia].each do |type|
+        result = white.simulate_color_blindness(type)
+        expect(result.r).to be_within(2).of(255)
+        expect(result.g).to be_within(2).of(255)
+        expect(result.b).to be_within(2).of(255)
+      end
+    end
+
+    it 'preserves black' do
+      black = described_class.new(0, 0, 0)
+      %i[protanopia deuteranopia tritanopia].each do |type|
+        result = black.simulate_color_blindness(type)
+        expect(result.to_hex).to eq('#000000')
+      end
+    end
+  end
+
+  describe '#gradient' do
+    it 'returns the correct number of steps' do
+      blue = described_class.new(0, 0, 255)
+      palette = red.gradient(blue, steps: 5)
+      expect(palette.size).to eq(5)
+    end
+
+    it 'starts with self and ends with other' do
+      blue = described_class.new(0, 0, 255)
+      palette = red.gradient(blue, steps: 5)
+      expect(palette.first).to eq(red)
+      expect(palette.last).to eq(blue)
+    end
+
+    it 'produces a smooth transition' do
+      white = described_class.new(255, 255, 255)
+      black = described_class.new(0, 0, 0)
+      palette = black.gradient(white, steps: 6)
+      palette.each_cons(2) do |a, b|
+        expect(b.r).to be >= a.r
+        expect(b.g).to be >= a.g
+        expect(b.b).to be >= a.b
+      end
+    end
+
+    it 'enforces minimum of 2 steps' do
+      blue = described_class.new(0, 0, 255)
+      palette = red.gradient(blue, steps: 1)
+      expect(palette.size).to eq(2)
+    end
+
+    it 'returns correct midpoint for 3 steps' do
+      white = described_class.new(255, 255, 255)
+      black = described_class.new(0, 0, 0)
+      palette = black.gradient(white, steps: 3)
+      expect(palette[1].r).to eq(128)
+      expect(palette[1].g).to eq(128)
+      expect(palette[1].b).to eq(128)
+    end
+  end
+
+  describe '#monochromatic' do
+    it 'returns the correct number of steps' do
+      palette = red.monochromatic(steps: 5)
+      expect(palette.size).to eq(5)
+    end
+
+    it 'returns colors with same hue' do
+      palette = red.monochromatic(steps: 5)
+      base_hue = red.to_hsl[:h]
+      palette.each do |color|
+        hsl = color.to_hsl
+        # Achromatic colors may have h=0, which is fine for red (h=0)
+        expect(hsl[:h]).to be_within(1).of(base_hue) unless hsl[:s].zero?
+      end
+    end
+
+    it 'returns colors ordered from dark to light' do
+      palette = red.monochromatic(steps: 5)
+      lightness_values = palette.map { |c| c.to_hsl[:l] }
+      expect(lightness_values).to eq(lightness_values.sort)
+    end
+
+    it 'enforces minimum of 2 steps' do
+      palette = red.monochromatic(steps: 1)
+      expect(palette.size).to eq(2)
     end
   end
 
