@@ -103,6 +103,19 @@ red.gradient(blue, steps: 5)    # => [Color, ...] gradient from red to blue
 red.monochromatic(steps: 5)     # => [Color, ...] dark to light shades of red
 ```
 
+### Color Temperature
+
+```ruby
+color = Philiprehberger::ColorConvert.parse("#ff6347")
+color.temperature # => :warm
+color.warm?       # => true
+color.cool?       # => false
+
+blue = Philiprehberger::ColorConvert.parse("blue")
+blue.temperature  # => :cool
+blue.cool?        # => true
+```
+
 ### Contrast Ratio
 
 ```ruby
@@ -153,6 +166,9 @@ colors.size            # => 148
 | `#simulate_color_blindness(type)` | Simulate protanopia, deuteranopia, or tritanopia |
 | `#gradient(other, steps:)` | Generate gradient palette between two colors |
 | `#monochromatic(steps:)` | Generate monochromatic palette (dark to light) |
+| `#temperature` | Classify as `:warm`, `:cool`, or `:neutral` by hue |
+| `#warm?` | True if color temperature is warm |
+| `#cool?` | True if color temperature is cool |
 | `#contrast_ratio(other)` | WCAG contrast ratio (1.0 to 21.0) |
 | `.from_hsl(h, s, l)` | Create Color from HSL values |
 | `.from_cmyk(c, m, y, k)` | Create Color from CMYK values |
