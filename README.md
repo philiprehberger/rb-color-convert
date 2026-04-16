@@ -60,6 +60,7 @@ color.darken(10)     # darker by 10%
 color.saturate(15)   # more saturated by 15%
 color.desaturate(15) # less saturated by 15%
 color.complement     # complementary color (180 degrees)
+color.invert         # inverted (negative) color, preserves alpha
 ```
 
 ### Color Blending
@@ -185,6 +186,7 @@ colors.size            # => 148
 | `#saturate(n)` | Increase saturation by n percent |
 | `#desaturate(n)` | Decrease saturation by n percent |
 | `#complement` | Return the complementary color |
+| `#invert` | Return inverted (negative) color; preserves alpha |
 | `#blend(other, weight:)` | Blend with another color (weight 0.0-1.0) |
 | `#analogous` | Generate analogous color harmony (3 colors) |
 | `#triadic` | Generate triadic color harmony (3 colors) |

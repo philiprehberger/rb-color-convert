@@ -339,6 +339,23 @@ RSpec.describe Philiprehberger::ColorConvert::Color do
     end
   end
 
+  describe '#invert' do
+    it 'flips each RGB channel' do
+      inverted = described_class.new(10, 200, 50).invert
+      expect(inverted.to_rgb).to eq(r: 245, g: 55, b: 205)
+    end
+
+    it 'preserves the alpha channel' do
+      inverted = described_class.new(0, 0, 0, alpha: 0.4).invert
+      expect(inverted.alpha).to eq(0.4)
+    end
+
+    it 'is self-inverse' do
+      original = described_class.new(120, 30, 210, alpha: 0.75)
+      expect(original.invert.invert.to_rgba).to eq(original.to_rgba)
+    end
+  end
+
   describe '#blend' do
     it 'returns equal mix at default weight' do
       blue = described_class.new(0, 0, 255)
