@@ -13,13 +13,18 @@ module Philiprehberger
       # @return [Integer] blue component (0-255)
       attr_reader :b
 
+      # @return [Float] alpha component (0.0-1.0)
+      attr_reader :alpha
+
       # @param r [Integer] red component (0-255)
       # @param g [Integer] green component (0-255)
       # @param b [Integer] blue component (0-255)
-      def initialize(r, g, b)
+      # @param alpha [Float] alpha component (0.0-1.0, default 1.0)
+      def initialize(r, g, b, alpha: 1.0)
         @r = clamp(r.round, 0, 255)
         @g = clamp(g.round, 0, 255)
         @b = clamp(b.round, 0, 255)
+        @alpha = clamp(alpha.to_f, 0.0, 1.0)
       end
 
       # Convert to hex string.
@@ -34,6 +39,38 @@ module Philiprehberger
       # @return [Hash] with :r, :g, :b keys (0-255)
       def to_rgb
         { r: @r, g: @g, b: @b }
+      end
+
+      # Convert to RGBA hash.
+      #
+      # @return [Hash] with :r, :g, :b (0-255) and :a (0.0-1.0) keys
+      def to_rgba
+        { r: @r, g: @g, b: @b, a: @alpha }
+      end
+
+      # Return the opacity (alpha) value.
+      #
+      # @return [Float] alpha value (0.0-1.0)
+      def opacity
+        @alpha
+      end
+
+      # Return a new Color with the given opacity.
+      #
+      # @param val [Float] new alpha value (0.0-1.0)
+      # @return [Color] a new Color with the updated alpha
+      def with_opacity(val)
+        self.class.new(@r, @g, @b, alpha: val)
+      end
+
+      # @return [Boolean] true if the color is fully opaque (alpha == 1.0)
+      def opaque?
+        (@alpha - 1.0).abs < Float::EPSILON
+      end
+
+      # @return [Boolean] true if the color has any transparency (alpha < 1.0)
+      def transparent?
+        !opaque?
       end
 
       # Convert to HSL hash.
@@ -365,12 +402,14 @@ module Philiprehberger
 
       # @return [String]
       def to_s
-        to_hex
+        return to_hex if opaque?
+
+        format('rgba(%d, %d, %d, %s)', @r, @g, @b, @alpha)
       end
 
       # @return [Boolean]
       def ==(other)
-        other.is_a?(Color) && @r == other.r && @g == other.g && @b == other.b
+        other.is_a?(Color) && @r == other.r && @g == other.g && @b == other.b && @alpha == other.alpha
       end
 
       # Create a Color from HSL values.
@@ -378,15 +417,16 @@ module Philiprehberger
       # @param h [Numeric] hue (0-360)
       # @param s [Numeric] saturation (0-100)
       # @param l [Numeric] lightness (0-100)
+      # @param alpha [Float] alpha component (0.0-1.0, default 1.0)
       # @return [Color]
-      def self.from_hsl(h, s, l)
+      def self.from_hsl(h, s, l, alpha: 1.0)
         h /= 360.0
         s /= 100.0
         l /= 100.0
 
         if s.zero?
           val = (l * 255).round
-          return new(val, val, val)
+          return new(val, val, val, alpha: alpha)
         end
 
         q = l < 0.5 ? l * (1 + s) : l + s - (l * s)
@@ -396,7 +436,7 @@ module Philiprehberger
         g = hue_to_rgb(p, q, h)
         b = hue_to_rgb(p, q, h - (1.0 / 3))
 
-        new((r * 255).round, (g * 255).round, (b * 255).round)
+        new((r * 255).round, (g * 255).round, (b * 255).round, alpha: alpha)
       end
 
       # Create a Color from CMYK values.

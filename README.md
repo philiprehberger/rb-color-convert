@@ -116,6 +116,32 @@ blue.temperature  # => :cool
 blue.cool?        # => true
 ```
 
+### Alpha Channel
+
+```ruby
+# Parse colors with alpha
+color = Philiprehberger::ColorConvert.parse('rgba(255, 0, 0, 0.5)')
+color.opacity   # => 0.5
+color.alpha     # => 0.5
+color.opaque?   # => false
+color.transparent? # => true
+color.to_rgba   # => { r: 255, g: 0, b: 0, a: 0.5 }
+color.to_s      # => "rgba(255, 0, 0, 0.5)"
+
+# Parse HSLA
+Philiprehberger::ColorConvert.parse('hsla(0, 100%, 50%, 0.8)')
+
+# Parse 8-digit hex (last two digits are alpha)
+Philiprehberger::ColorConvert.parse('#ff000080') # alpha ~ 0.502
+
+# Create with alpha
+color = Philiprehberger::ColorConvert::Color.new(255, 0, 0, alpha: 0.5)
+
+# Adjust opacity
+semi = color.with_opacity(0.3)
+opaque = color.with_opacity(1.0)
+```
+
 ### Contrast Ratio
 
 ```ruby
@@ -148,6 +174,7 @@ colors.size            # => 148
 |--------|-------------|
 | `#to_hex` | Convert to hex string (e.g., "#ff0000") |
 | `#to_rgb` | Convert to RGB hash ({ r:, g:, b: }) |
+| `#to_rgba` | Convert to RGBA hash ({ r:, g:, b:, a: }) |
 | `#to_hsl` | Convert to HSL hash ({ h:, s:, l: }) |
 | `#to_hsv` | Convert to HSV hash ({ h:, s:, v: }) |
 | `#to_cmyk` | Convert to CMYK hash ({ c:, m:, y:, k: }) |
@@ -170,6 +197,11 @@ colors.size            # => 148
 | `#warm?` | True if color temperature is warm |
 | `#cool?` | True if color temperature is cool |
 | `#contrast_ratio(other)` | WCAG contrast ratio (1.0 to 21.0) |
+| `#opacity` | Return alpha value (0.0-1.0) |
+| `#alpha` | Alias for `#opacity` (attr_reader) |
+| `#with_opacity(val)` | Return new Color with given alpha (0.0-1.0) |
+| `#opaque?` | True if alpha is 1.0 |
+| `#transparent?` | True if alpha is less than 1.0 |
 | `.from_hsl(h, s, l)` | Create Color from HSL values |
 | `.from_cmyk(c, m, y, k)` | Create Color from CMYK values |
 | `.from_lab(l, a, b)` | Create Color from CIELAB values |

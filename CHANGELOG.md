@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-04-16
+
+### Added
+- Alpha channel support: `Color` gains an `@alpha` attribute (Float 0.0-1.0, default 1.0)
+- `Color#initialize` accepts optional `alpha:` keyword argument
+- Parse `rgba(r, g, b, a)` and `hsla(h, s%, l%, a)` string formats
+- Parse 8-digit hex (`#rrggbbaa`) — alpha extracted from last 2 hex digits
+- `#to_rgba` returns `{ r:, g:, b:, a: }` hash including alpha
+- `#opacity` returns the alpha value (0.0-1.0)
+- `#alpha` attribute reader (alias via `attr_reader`)
+- `#with_opacity(val)` returns a new Color with the given alpha
+- `#opaque?` returns true when alpha is 1.0
+- `#transparent?` returns true when alpha is less than 1.0
+- `#to_s` includes alpha in `rgba(...)` format when alpha is not 1.0
+
 ## [0.3.0] - 2026-04-15
 
 ### Added

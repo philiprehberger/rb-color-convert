@@ -11,8 +11,11 @@ module Philiprehberger
     #
     # Supported formats:
     # - Hex: "#ff0000", "#f00", "ff0000", "f00"
+    # - Hex with alpha: "#rrggbbaa" (8-digit)
     # - RGB: "rgb(255, 0, 0)"
+    # - RGBA: "rgba(255, 0, 0, 0.5)"
     # - HSL: "hsl(0, 100%, 50%)"
+    # - HSLA: "hsla(0, 100%, 50%, 0.5)"
     # - HSV: "hsv(0, 100%, 100%)"
     # - CMYK: "cmyk(0, 100%, 100%, 0)"
     # - CSS named colors: "red", "blue", "cornflowerblue"
@@ -26,12 +29,22 @@ module Philiprehberger
       # Try named colors first
       return parse_hex(NAMED_COLORS[input]) if NAMED_COLORS.key?(input)
 
-      # Hex format
+      # Hex format (3, 6, or 8 digits)
       return parse_hex(input) if input.match?(/\A#?[0-9a-f]{3,8}\z/)
+
+      # RGBA format
+      if (match = input.match(/\Argba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)\z/))
+        return Color.new(match[1].to_i, match[2].to_i, match[3].to_i, alpha: match[4].to_f)
+      end
 
       # RGB format
       if (match = input.match(/\Argb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)\z/))
         return Color.new(match[1].to_i, match[2].to_i, match[3].to_i)
+      end
+
+      # HSLA format
+      if (match = input.match(/\Ahsla\(\s*([\d.]+)\s*,\s*([\d.]+)%?\s*,\s*([\d.]+)%?\s*,\s*([\d.]+)\s*\)\z/))
+        return Color.from_hsl(match[1].to_f, match[2].to_f, match[3].to_f, alpha: match[4].to_f)
       end
 
       # HSL format
@@ -93,15 +106,21 @@ module Philiprehberger
         r = hex[0] * 2
         g = hex[1] * 2
         b = hex[2] * 2
-      when 6, 8
+        Color.new(r.to_i(16), g.to_i(16), b.to_i(16))
+      when 6
         r = hex[0..1]
         g = hex[2..3]
         b = hex[4..5]
+        Color.new(r.to_i(16), g.to_i(16), b.to_i(16))
+      when 8
+        r = hex[0..1]
+        g = hex[2..3]
+        b = hex[4..5]
+        a = hex[6..7].to_i(16) / 255.0
+        Color.new(r.to_i(16), g.to_i(16), b.to_i(16), alpha: a.round(6))
       else
         raise ParseError, "Invalid hex color: #{str}"
       end
-
-      Color.new(r.to_i(16), g.to_i(16), b.to_i(16))
     end
     private_class_method :parse_hex
   end
