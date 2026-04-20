@@ -233,6 +233,14 @@ module Philiprehberger
         self.class.from_hsl(new_h, hsl[:s], hsl[:l])
       end
 
+      # Return the inverted color (negative) by flipping each RGB channel.
+      # Alpha is preserved.
+      #
+      # @return [Color] a new color with inverted RGB channels
+      def invert
+        self.class.new(255 - @r, 255 - @g, 255 - @b, alpha: @alpha)
+      end
+
       # Blend this color with another color.
       #
       # @param other [Color] the other color to blend with
