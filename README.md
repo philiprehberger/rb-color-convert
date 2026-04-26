@@ -151,6 +151,22 @@ black = Philiprehberger::ColorConvert.parse("black")
 white.contrast_ratio(black) # => 21.0 (WCAG contrast ratio)
 ```
 
+### Accessibility (WCAG)
+
+```ruby
+require "philiprehberger/color_convert"
+
+text = Philiprehberger::ColorConvert.parse('#222')
+text.wcag_aa?(bg: '#fff')   # => true
+text.wcag_aaa?(bg: '#fff')  # => true
+```
+
+### Short Hex
+
+```ruby
+Philiprehberger::ColorConvert.parse('#ff0000').to_short_hex  # => "#f00"
+```
+
 ### CSS Named Colors
 
 ```ruby
@@ -199,6 +215,9 @@ colors.size            # => 148
 | `#warm?` | True if color temperature is warm |
 | `#cool?` | True if color temperature is cool |
 | `#contrast_ratio(other)` | WCAG contrast ratio (1.0 to 21.0) |
+| `#wcag_aa?(bg:, large: false)` | True when contrast meets WCAG AA |
+| `#wcag_aaa?(bg:, large: false)` | True when contrast meets WCAG AAA |
+| `#to_short_hex` | 3-digit hex when channels collapse, full hex otherwise |
 | `#opacity` | Return alpha value (0.0-1.0) |
 | `#alpha` | Alias for `#opacity` (attr_reader) |
 | `#with_opacity(val)` | Return new Color with given alpha (0.0-1.0) |

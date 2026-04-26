@@ -598,6 +598,70 @@ RSpec.describe Philiprehberger::ColorConvert::Color do
     end
   end
 
+  describe '#wcag_aa?' do
+    it 'returns true for black on white' do
+      black = described_class.new(0, 0, 0)
+      white = described_class.new(255, 255, 255)
+      expect(black.wcag_aa?(bg: white)).to be true
+    end
+
+    it 'returns false when contrast is below 4.5 for normal text' do
+      gray = described_class.new(130, 130, 130)
+      white = described_class.new(255, 255, 255)
+      expect(gray.wcag_aa?(bg: white)).to be false
+    end
+
+    it 'returns true for the same gray on white when large text (threshold 3.0)' do
+      gray = described_class.new(130, 130, 130)
+      white = described_class.new(255, 255, 255)
+      expect(gray.wcag_aa?(bg: white, large: true)).to be true
+    end
+
+    it 'accepts a hex string for bg' do
+      black = described_class.new(0, 0, 0)
+      expect(black.wcag_aa?(bg: '#ffffff')).to be true
+    end
+  end
+
+  describe '#wcag_aaa?' do
+    it 'returns true for black on white' do
+      black = described_class.new(0, 0, 0)
+      white = described_class.new(255, 255, 255)
+      expect(black.wcag_aaa?(bg: white)).to be true
+    end
+
+    it 'returns false when contrast is below 7.0 for normal text' do
+      mid_gray = described_class.new(120, 120, 120)
+      white = described_class.new(255, 255, 255)
+      expect(mid_gray.wcag_aaa?(bg: white)).to be false
+    end
+
+    it 'uses 4.5 threshold for large text' do
+      dark_gray = described_class.new(100, 100, 100)
+      white = described_class.new(255, 255, 255)
+      expect(dark_gray.wcag_aaa?(bg: white, large: true)).to be true
+    end
+
+    it 'accepts a hex string for bg' do
+      black = described_class.new(0, 0, 0)
+      expect(black.wcag_aaa?(bg: '#fff')).to be true
+    end
+  end
+
+  describe '#to_short_hex' do
+    it 'returns 3-digit hex when channels collapse' do
+      expect(described_class.new(255, 0, 0).to_short_hex).to eq('#f00')
+    end
+
+    it 'returns 3-digit hex for #aabbcc' do
+      expect(described_class.new(0xaa, 0xbb, 0xcc).to_short_hex).to eq('#abc')
+    end
+
+    it 'returns full hex when channels do not collapse' do
+      expect(described_class.new(0x12, 0x34, 0x56).to_short_hex).to eq('#123456')
+    end
+  end
+
   describe '#temperature' do
     it 'returns :warm for red (hue 0)' do
       expect(red.temperature).to eq(:warm)

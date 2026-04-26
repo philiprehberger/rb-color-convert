@@ -34,6 +34,20 @@ module Philiprehberger
         format('#%<r>02x%<g>02x%<b>02x', r: @r, g: @g, b: @b)
       end
 
+      # Convert to short hex string when possible.
+      #
+      # Returns a 3-digit hex when each channel byte collapses to a doubled hex
+      # digit (e.g. 0xff, 0xaa); otherwise returns the full 6-digit hex.
+      #
+      # @return [String] 3-digit hex when channels collapse, otherwise full hex
+      def to_short_hex
+        if [@r, @g, @b].all? { |c| (c >> 4) == (c & 0xF) }
+          format('#%01x%01x%01x', @r >> 4, @g >> 4, @b >> 4)
+        else
+          to_hex
+        end
+      end
+
       # Convert to RGB hash.
       #
       # @return [Hash] with :r, :g, :b keys (0-255)
@@ -367,10 +381,30 @@ module Philiprehberger
       # @return [Float] the contrast ratio (1.0 to 21.0)
       def contrast_ratio(other)
         l1 = relative_luminance
-        l2 = other.relative_luminance
+        l2 = coerce_color(other).relative_luminance
         lighter = [l1, l2].max
         darker = [l1, l2].min
         ((lighter + 0.05) / (darker + 0.05)).round(2)
+      end
+
+      # Check whether contrast against a background meets WCAG AA.
+      #
+      # @param bg [Color, String] background color
+      # @param large [Boolean] true for large text (>= 18pt or >= 14pt bold)
+      # @return [Boolean] true when contrast meets WCAG AA threshold
+      def wcag_aa?(bg:, large: false)
+        threshold = large ? 3.0 : 4.5
+        contrast_ratio(coerce_color(bg)) >= threshold
+      end
+
+      # Check whether contrast against a background meets WCAG AAA.
+      #
+      # @param bg [Color, String] background color
+      # @param large [Boolean] true for large text (>= 18pt or >= 14pt bold)
+      # @return [Boolean] true when contrast meets WCAG AAA threshold
+      def wcag_aaa?(bg:, large: false)
+        threshold = large ? 4.5 : 7.0
+        contrast_ratio(coerce_color(bg)) >= threshold
       end
 
       # Calculate relative luminance per WCAG 2.0.
@@ -561,6 +595,10 @@ module Philiprehberger
       }.freeze
 
       private
+
+      def coerce_color(color)
+        color.is_a?(String) ? ColorConvert.parse(color) : color
+      end
 
       def clamp(value, min, max)
         [[value, min].max, max].min
