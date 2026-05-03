@@ -101,6 +101,39 @@ RSpec.describe Philiprehberger::ColorConvert do
       expect(colors['white']).to eq('#ffffff')
     end
   end
+
+  describe '.named?' do
+    it 'returns true for a recognized lowercase name' do
+      expect(described_class.named?('red')).to be true
+    end
+
+    it 'is case-insensitive' do
+      expect(described_class.named?('Red')).to be true
+      expect(described_class.named?('CORNFLOWERBLUE')).to be true
+    end
+
+    it 'tolerates surrounding whitespace' do
+      expect(described_class.named?('  red  ')).to be true
+    end
+
+    it 'returns false for hex strings' do
+      expect(described_class.named?('#ff0000')).to be false
+    end
+
+    it 'returns false for an unknown name' do
+      expect(described_class.named?('fakecolor')).to be false
+    end
+
+    it 'returns false for non-String input' do
+      expect(described_class.named?(nil)).to be false
+      expect(described_class.named?(42)).to be false
+      expect(described_class.named?(:red)).to be false
+    end
+
+    it 'returns true for multi-word CSS names' do
+      expect(described_class.named?('cornflowerblue')).to be true
+    end
+  end
 end
 
 RSpec.describe Philiprehberger::ColorConvert::Color do

@@ -176,6 +176,20 @@ colors["cornflowerblue"] # => "#6495ed"
 colors.size            # => 148
 ```
 
+### Named Color Check
+
+Validate that an input string is a recognized CSS named color before passing it to `parse`:
+
+```ruby
+Philiprehberger::ColorConvert.named?("red")            # => true
+Philiprehberger::ColorConvert.named?("Red")            # => true (case-insensitive)
+Philiprehberger::ColorConvert.named?("  red  ")        # => true (whitespace-tolerant)
+Philiprehberger::ColorConvert.named?("cornflowerblue") # => true
+Philiprehberger::ColorConvert.named?("#ff0000")        # => false (hex is not a name)
+Philiprehberger::ColorConvert.named?("fakecolor")      # => false
+Philiprehberger::ColorConvert.named?(nil)              # => false
+```
+
 ## API
 
 ### `ColorConvert`
@@ -184,6 +198,7 @@ colors.size            # => 148
 |--------|-------------|
 | `.parse(str)` | Parse a color string (hex, RGB, HSL, HSV, CMYK, or CSS name) |
 | `.named_colors` | Return all 148 CSS named colors as name => hex hash |
+| `.named?(input)` | Check whether a string is a recognized CSS named color (case-insensitive) |
 
 ### `Color`
 

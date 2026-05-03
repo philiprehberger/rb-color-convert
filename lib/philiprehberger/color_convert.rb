@@ -72,6 +72,18 @@ module Philiprehberger
       NAMED_COLORS
     end
 
+    # Whether the given input is a recognized CSS named color.
+    # Case-insensitive and whitespace-tolerant. Returns false for non-String
+    # input (no exception).
+    #
+    # @param input [String, Object]
+    # @return [Boolean]
+    def self.named?(input)
+      return false unless input.is_a?(String)
+
+      NAMED_COLORS.key?(input.strip.downcase)
+    end
+
     # Create a Color from HSV values.
     #
     # @param h [Numeric] hue (0-360)
