@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-05-31
+
+### Added
+- `Color#grayscale` returns a new color with equal R, G, B channels computed via the ITU-R BT.601 luma formula (0.299*R + 0.587*G + 0.114*B). Alpha is preserved — useful for accessibility previews and thumbnail generation.
+- README now includes the standard package card image after the badges.
+
 ## [0.7.0] - 2026-05-02
 
 ### Added

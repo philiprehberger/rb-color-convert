@@ -389,6 +389,24 @@ RSpec.describe Philiprehberger::ColorConvert::Color do
     end
   end
 
+  describe '#grayscale' do
+    it 'sets all three channels to the BT.601 luma' do
+      gray = described_class.new(255, 0, 0).grayscale
+      # 0.299 * 255 = 76.245 → 76
+      expect(gray.to_rgb).to eq(r: 76, g: 76, b: 76)
+    end
+
+    it 'leaves a pure gray unchanged' do
+      gray = described_class.new(128, 128, 128).grayscale
+      expect(gray.to_rgb).to eq(r: 128, g: 128, b: 128)
+    end
+
+    it 'preserves alpha' do
+      gray = described_class.new(100, 200, 50, alpha: 0.4).grayscale
+      expect(gray.alpha).to eq(0.4)
+    end
+  end
+
   describe '#blend' do
     it 'returns equal mix at default weight' do
       blue = described_class.new(0, 0, 255)

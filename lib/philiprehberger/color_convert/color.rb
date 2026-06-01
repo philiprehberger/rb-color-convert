@@ -255,6 +255,16 @@ module Philiprehberger
         self.class.new(255 - @r, 255 - @g, 255 - @b, alpha: @alpha)
       end
 
+      # Return a grayscale version using the standard ITU-R BT.601 luma
+      # formula (0.299*R + 0.587*G + 0.114*B). All three channels are set
+      # to the resulting luma value. Alpha is preserved.
+      #
+      # @return [Color] a new color with equal R, G, B channels and the original alpha
+      def grayscale
+        luma = ((0.299 * @r) + (0.587 * @g) + (0.114 * @b)).round
+        self.class.new(luma, luma, luma, alpha: @alpha)
+      end
+
       # Blend this color with another color.
       #
       # @param other [Color] the other color to blend with

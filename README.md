@@ -4,6 +4,8 @@
 [![Gem Version](https://badge.fury.io/rb/philiprehberger-color_convert.svg)](https://rubygems.org/gems/philiprehberger-color_convert)
 [![Last updated](https://img.shields.io/github/last-commit/philiprehberger/rb-color-convert)](https://github.com/philiprehberger/rb-color-convert/commits/main)
 
+![philiprehberger-color_convert](https://raw.githubusercontent.com/philiprehberger/rb-color-convert/main/package-card.webp)
+
 Color format conversion with parsing, manipulation, harmony generation, color blindness simulation, and CSS named colors
 
 ## Requirements
@@ -61,6 +63,7 @@ color.saturate(15)   # more saturated by 15%
 color.desaturate(15) # less saturated by 15%
 color.complement     # complementary color (180 degrees)
 color.invert         # inverted (negative) color, preserves alpha
+color.grayscale      # grayscale via BT.601 luma, preserves alpha
 ```
 
 ### Color Blending
@@ -218,6 +221,7 @@ Philiprehberger::ColorConvert.named?(nil)              # => false
 | `#desaturate(n)` | Decrease saturation by n percent |
 | `#complement` | Return the complementary color |
 | `#invert` | Return inverted (negative) color; preserves alpha |
+| `#grayscale` | Return grayscale color via BT.601 luma; preserves alpha |
 | `#blend(other, weight:)` | Blend with another color (weight 0.0-1.0) |
 | `#analogous` | Generate analogous color harmony (3 colors) |
 | `#triadic` | Generate triadic color harmony (3 colors) |
